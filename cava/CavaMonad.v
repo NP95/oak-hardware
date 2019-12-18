@@ -10,10 +10,15 @@ Require Import Hask.Control.Monad.State.
 Local Open Scope list_scope.
 Local Open Scope monad_scope.
 
-Class Cava m t  := {
+Set Printing Implicit.
+
+Class Cava m t {monad:Monad m} := {
   inv : t -> m t;
   and2 : t * t -> m t;
 }.
+
+
+Definition nand2 := and2 >=> inv. 
 
 
 Record Instance : Type := mkInstance {
