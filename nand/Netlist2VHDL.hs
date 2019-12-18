@@ -30,7 +30,8 @@ import qualified Netlist
 writePairToVHDL :: String ->
                    Datatypes.Coq_prod Netlist.Coq_bool Netlist.Coq_bool -> IO ()
 writePairToVHDL name (Datatypes.Coq_pair a b)
-  = writeFile (name ++ ".vhd") (unlines (genVHDL name [a, b]))
+  = do writeFile (name ++ ".vhd") (unlines (genVHDL name [a, b]))
+       putStrLn ("Generate VHDL file " ++ name ++ ".vhd")
 
 --------------------------------------------------------------------------------
 -- genVHDL will generate a package declaration for a component and an
