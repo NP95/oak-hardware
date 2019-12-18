@@ -13,10 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+.PHONY: all clean haskell
 
-.PHONY: all clean
+all:		haskell ComputerNetlist.hs
 
-all:		Makefile.coq ComputerNetlist.hs
+haskell:	Makefile.coq
 		$(MAKE) -f Makefile.coq
 
 Makefile.coq:	_CoqProject
@@ -34,4 +35,6 @@ ComputerNetlist.hs:	Makefile.coq
 
 clean:		Makefile.coq
 		$(MAKE) -f Makefile.coq clean
-		rm -rf Makefile.coq ComputerNetlist.hs
+		rm -rf Makefile.coq ComputerNetlist.hs ComputerGates.hs \
+                       Datatypes.hs Decimal.hs List.hs Logic.hs Nand.hs \
+                       Nat.hs Specif.hs Makefile.coq.conf
