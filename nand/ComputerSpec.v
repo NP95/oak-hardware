@@ -17,14 +17,10 @@
 (* Implement and prove the computer from http://nandgame.com/ *)
 
 Require Import Bool.
+Require Import Nand.
+Require Import ComputerGates.
 
 Definition p_nand(a b : bool) : bool := negb (a && b).
-
-Definition g_nand(a b : bool) : bool :=
-  match (a, b) with
-  (true, true) => false
-  | (_, _) => true
-end.
 
 Lemma nand_equiv :
   forall (a b : bool), g_nand a b = p_nand a b.
@@ -36,8 +32,6 @@ Proof.
   all: simpl.
   all: reflexivity.
 Qed.
-
-Definition g_invert(a : bool) : bool := g_nand a a.
 
 Definition p_invert(a : bool) : bool := negb a.
 
@@ -52,8 +46,6 @@ Proof.
   rewrite andb_diag.
   reflexivity.
 Qed.
-
-Definition g_and(a b : bool) : bool := g_invert (g_nand a b).
 
 Definition p_and(a b : bool) : bool := a && b.
 
@@ -70,8 +62,6 @@ Proof.
   rewrite negb_involutive.
   reflexivity.
 Qed.
-
-Definition g_or(a b : bool) : bool := g_nand (g_invert a) (g_invert b).
 
 Definition p_or(a b : bool) : bool := a || b.
 
@@ -91,8 +81,6 @@ Proof.
   rewrite negb_involutive.
   reflexivity.
 Qed.
-
-Definition g_xor(a b : bool) : bool := let nab := g_nand a b in g_nand (g_nand a nab) (g_nand nab b).
 
 Definition p_xor(a b : bool) : bool := xorb a b.
 
@@ -120,8 +108,6 @@ Fixpoint p_bits_to_nat(b : list bool) : nat :=
 Definition p_bitsc_to_nat (b : list bool) (c : bool) : nat := p_bits_to_nat (b ++ c::nil).
 Definition p_bitc_to_nat (b c : bool) : nat := p_bits_to_nat (b::c::nil).
 
-Definition g_half_adder(a b : bool) : bool * bool := (g_xor a b, g_and a b).
-
 Definition p_half_adder(a b : nat) : nat := a + b.
 
 (* Definition p_bits(a : bool * bool) : nat :=
@@ -140,15 +126,6 @@ Proof.
   all: reflexivity.
 Qed.
 
-Definition g_full_adder(a b c : bool) : bool * bool :=
-  let (abl, abh) := g_half_adder a b in
-  let (abcl, abch) := g_half_adder abl c in
-(*  let (l, h) := g_half_adder abh abch in
-  (abcl, l). or.. *)
-  (abcl, g_or abh abch).  (* should be g_xor, but the true, true case is impossible and g_or is cheaper *)
-
-Compute g_full_adder true true true.
-
 Definition p_adder(a b c : nat) : nat := a + b + c.
 
 Lemma full_adder_equiv :
@@ -160,18 +137,6 @@ Proof.
   all: reflexivity.
 Qed.
 
-Definition g_bit2_adder(a0 a1 b0 b1 c : bool) : bool * bool * bool :=
-  let (l0, h0) := g_full_adder a0 b0 c in
-  let (l1, h1) := g_full_adder a1 b1 h0 in
-  (l0, l1, h1).
-
-(* Definition p_bits3(a : bool*bool*bool) : nat :=
-  match a with
-  | (b, c, d) => p_bits (b, c) * 2 + p_bit d
-  end. *)
-
-Compute g_bit2_adder true true true true true.
-
 Lemma bit2_adder_equiv :
   forall (a1 a0 b1 b0 c : bool),
     let '(r0, r1, c') := g_bit2_adder a0 a1 b0 b1 c in
@@ -182,18 +147,7 @@ Proof.
   all: reflexivity.
 Qed.
 
-Fixpoint g_bitn_adder (a b : list bool) (c : bool) : list bool :=
-  match a with
-    | nil => nil
-    | a0::nil => let (l, h) := g_full_adder (hd false a) (hd false b) c in
-           l::h::nil
-    | a0::t => let (l, h) := g_full_adder (hd false a) (hd false b) c in
-              let r := g_bitn_adder t (tl b) h in
-              l::r
-      (* let (h, l) := g_full_adder (last a false) (last b false) c in
-              let r := g_bitn_adder n' (removelast a) (removelast b) h in
-              r ++ l::nil *)
-  end.
+
 
 Lemma bitn2_adder_equiv :
   forall (a1 a0 b1 b0 c : bool),
@@ -311,17 +265,6 @@ Proof.
     }
 Qed.
 
-(* a one as a list of bools *)
-Fixpoint g_one (l : nat) : list bool :=
-  match l with
-  | 0 => nil
-  | 1 => true::nil
-  | S l' => g_one l' ++ false::nil
-  end.
-
-(* Naive incrementer - just use an adder to add one *)
-Definition g_inc (a : list bool) : list bool :=
-  g_bitn_adder a (g_one (length a)) false.
 
 Definition p_inc (a : nat) : nat :=
   a + 1.
@@ -415,11 +358,6 @@ Proof.
   }
 Qed.
 
-Fixpoint g_bitn_inverter (n : nat) (a : list bool) : list bool :=
-  match n with
-  | 0 => nil
-  | S n => g_invert (hd false a) :: g_bitn_inverter n (tl a)
-  end.
 
 Definition p_inverter (a : list bool) : list bool := map negb a.
 
@@ -458,4 +396,4 @@ Proof.
     reflexivity. }
 Qed.
 
-Definition g_inv16(a : list bool) := g_bitn_inverter 16 a.
+
